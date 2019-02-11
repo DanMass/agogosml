@@ -18,10 +18,20 @@ jobs:
     vmImage: 'Ubuntu 16.04'
     
   steps:
+  - bash: |
+      if [ -z "$AGO_AZURE_SUBSCRIPTION_ENDPOINT" ]; then
+        echo "AGO_AZURE_SUBSCRIPTION_ENDPOINT not set in environment or pipeline variables- exiting"
+        exit 1
+      else
+        echo "using for AGO_AZURE_SUBSCRIPTION_ENDPOINT - ${AGO_AZURE_SUBSCRIPTION_ENDPOINT}"
+      fi
+
+    displayName: 'verify ENV variable set for AGO_AZURE_SUBSCRIPTION_ENDPOINT'
+    
   - task: Docker@1
     displayName: 'Build app image'
     inputs:
-      azureSubscriptionEndpoint: '{{cookiecutter.SUBSCRIPTION_ID}}'
+      azureSubscriptionEndpoint: $AGO_AZURE_SUBSCRIPTION_ENDPOINT
       azureContainerRegistry: {{cookiecutter.AZURE_CONTAINER_REGISTRY}}
       dockerFile: '**/Dockerfile.{{cookiecutter.PROJECT_NAME_SLUG}}'
       arguments: '--build-arg CONTAINER_REG=$(container_registry) --build-arg AGOGOSML_TAG=$(Build.BuildId)'
@@ -44,7 +54,7 @@ jobs:
   - task: Docker@1
     displayName: 'Push app image'
     inputs:
-      azureSubscriptionEndpoint: '{{cookiecutter.SUBSCRIPTION_ID}}'
+      azureSubscriptionEndpoint: $AGO_AZURE_SUBSCRIPTION_ENDPOINT
       azureContainerRegistry: {{cookiecutter.AZURE_CONTAINER_REGISTRY}}
       command: 'Push an image'
       imageName: 'sample_app'

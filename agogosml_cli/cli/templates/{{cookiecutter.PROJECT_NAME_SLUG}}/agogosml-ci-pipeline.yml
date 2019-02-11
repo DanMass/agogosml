@@ -22,10 +22,20 @@ jobs:
     vmImage: 'Ubuntu 16.04'
 
   steps:
+  - bash: |
+      if [ -z "$AGO_AZURE_SUBSCRIPTION_ENDPOINT" ]; then
+        echo "AGO_AZURE_SUBSCRIPTION_ENDPOINT not set in environment or pipeline variables- exiting"
+        exit 1
+      else
+        echo "using for AGO_AZURE_SUBSCRIPTION_ENDPOINT - ${AGO_AZURE_SUBSCRIPTION_ENDPOINT}"
+      fi
+
+    displayName: 'verify ENV variable set for AGO_AZURE_SUBSCRIPTION_ENDPOINT'
+
   - task: Docker@1
     displayName: 'Build an image'
     inputs:
-      azureSubscriptionEndpoint: '{{cookiecutter.SUBSCRIPTION_ID}}'
+      azureSubscriptionEndpoint: $AGO_AZURE_SUBSCRIPTION_ENDPOINT
       azureContainerRegistry: {{cookiecutter.AZURE_CONTAINER_REGISTRY}}
       dockerFile: '**/agogosml/Dockerfile.agogosml'
       imageName: 'agogosml:$(Build.BuildId)'
@@ -44,7 +54,7 @@ jobs:
   - task: Docker@1
     displayName: 'Push base image'
     inputs:
-      azureSubscriptionEndpoint: '{{cookiecutter.SUBSCRIPTION_ID}}'
+      azureSubscriptionEndpoint: $AGO_AZURE_SUBSCRIPTION_ENDPOINT
       azureContainerRegistry: {{cookiecutter.AZURE_CONTAINER_REGISTRY}}
       command: 'Push an image'
       imageName: agogosml
@@ -61,7 +71,7 @@ jobs:
   - task: Docker@1
     displayName: 'Build an image'
     inputs:
-      azureSubscriptionEndpoint: '{{cookiecutter.SUBSCRIPTION_ID}}'
+      azureSubscriptionEndpoint: $AGO_AZURE_SUBSCRIPTION_ENDPOINT
       azureContainerRegistry: {{cookiecutter.AZURE_CONTAINER_REGISTRY}}
       dockerFile: '**/input_reader/Dockerfile.input_reader'
       arguments: '--build-arg CONTAINER_REG=$(container_registry) --build-arg AGOGOSML_TAG=$(Build.BuildId)'
@@ -82,7 +92,7 @@ jobs:
   - task: Docker@1
     displayName: 'Push input reader app image'
     inputs:
-      azureSubscriptionEndpoint: '{{cookiecutter.SUBSCRIPTION_ID}}'
+      azureSubscriptionEndpoint: $AGO_AZURE_SUBSCRIPTION_ENDPOINT
       azureContainerRegistry: {{cookiecutter.AZURE_CONTAINER_REGISTRY}}
       command: 'Push an image'
       imageName: 'input_reader'
@@ -99,7 +109,7 @@ jobs:
   - task: Docker@1
     displayName: 'Build an image'
     inputs:
-      azureSubscriptionEndpoint: '{{cookiecutter.SUBSCRIPTION_ID}}'
+      azureSubscriptionEndpoint: $AGO_AZURE_SUBSCRIPTION_ENDPOINT
       azureContainerRegistry: {{cookiecutter.AZURE_CONTAINER_REGISTRY}}
       dockerFile: '**/output_writer/Dockerfile.output_writer'
       arguments: '--build-arg CONTAINER_REG=$(container_registry) --build-arg AGOGOSML_TAG=$(Build.BuildId)'
@@ -120,7 +130,7 @@ jobs:
   - task: Docker@1
     displayName: 'Push output writer app image'
     inputs:
-      azureSubscriptionEndpoint: '{{cookiecutter.SUBSCRIPTION_ID}}'
+      azureSubscriptionEndpoint: $AGO_AZURE_SUBSCRIPTION_ENDPOINT
       azureContainerRegistry: {{cookiecutter.AZURE_CONTAINER_REGISTRY}}
       command: 'Push an image'
       imageName: 'output_writer'
